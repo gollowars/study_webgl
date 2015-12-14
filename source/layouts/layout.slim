@@ -1,0 +1,29 @@
+doctype html
+html
+  head
+    meta charset="utf-8"
+
+    /! Always force latest IE rendering engine or request Chrome Frame
+    meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"
+    /! Use title if it's in the page YAML frontmatter
+    title = data.page.title || "The Middleman"
+
+    == stylesheet_link_tag "normalize", "all"
+
+  body class="#{page_classes}"
+    == yield
+
+  script#frag type="x-shader/x-fragment"
+    == File.read('./source/js/shader/test.frag')
+  script#frag type="x-shader/x-fragment"
+    == File.read('./source/js/shader/background.frag')
+  script#vert type="x-shader/x-vertex"
+    == File.read('./source/js/shader/test.vert')
+  script#thumb-frag type="x-shader/x-fragment"
+    == File.read('./source/js/shader/thumbnail.frag')
+  script#title-frag type="x-shader/x-fragment"
+    == File.read('./source/js/shader/title.frag')
+  script#test-frag type="x-shader/x-fragment"
+    == File.read('./source/js/shader/test.frag')
+  script#default-vert type="x-shader/x-vert"
+    == File.read('./source/js/shader/eizo.vert')

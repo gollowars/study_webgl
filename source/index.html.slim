@@ -1,0 +1,15 @@
+---
+title: Welcome to Middleman
+---
+
+#container
+   h1#hello
+
+script#frag type="x-shader/x-fragment"
+  == File.read('./source/js/shader/background.frag')
+
+script#default-vert type="x-shader/x-vertex"
+  == File.read('./source/js/shader/eizo.vert')
+
+== javascript_include_tag  "main"
+
