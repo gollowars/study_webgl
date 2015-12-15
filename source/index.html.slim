@@ -3,13 +3,12 @@ title: Welcome to Middleman
 ---
 
 #container
-   h1#hello
 
 script#frag type="x-shader/x-fragment"
-  == File.read('./source/js/shader/background.frag')
+  == File.read('./source/js/shader/yoshizumi.frag')
 
-script#default-vert type="x-shader/x-vertex"
-  == File.read('./source/js/shader/eizo.vert')
+script#vert type="x-shader/x-vertex"
+  == File.read('./source/js/shader/yoshizumi.vert')
 
 == javascript_include_tag  "main"
 

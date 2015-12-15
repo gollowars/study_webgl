@@ -1,7 +1,7 @@
 #= require 'modules/libs.module'
-#= require 'modules/World.module'
+#= require 'modules/WebglWorld.module'
 
 
-World = require 'modules/World'
+WebglWorld = require 'modules/WebglWorld'
 
-world = new World()
+world = new WebglWorld()

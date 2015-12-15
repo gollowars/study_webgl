@@ -1,4 +1,6 @@
+#= require '../libs/jquery-2.1.4.js'
 #= require '../libs/lodash'
 #= require '../libs/three.min'
 #= require '../libs/signals'
 #= require '../libs/Tween.js'
+#= require '../libs/minMatrix.js'
