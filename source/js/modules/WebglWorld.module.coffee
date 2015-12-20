@@ -1,15 +1,21 @@
 #= require './shaderlib.module'
 #= require './Beacon.module'
-#= require './JoyShader.module'
+#= require './SimpleObject.module'
 
 Beacon = require 'modules/Beacon'
 ShaderLib = require './shaderlib'
-JoyShader = require './JoyShader'
+SimpleObject = require './SimpleObject'
 
 module.exports = class World
   constructor: ->
     @canvas = null
     @gl = null
+
+    @time = 0
+    @increment = 0.01
+
+    @objSum = 2
+    @objArray = []
 
     @init()
     return
@@ -26,66 +32,26 @@ module.exports = class World
     @gl.clearColor(0.0,0.0,0.0,1.0)
     @gl.clearDepth(1.0)
     @gl.clear @gl.COLOR_BUFFER_BIT | @gl.DEPTH_BUFFER_BIT
+    
 
-    vs = @gl.createShader @gl.VERTEX_SHADER
-    @gl.shaderSource vs, $('#vert').text()
-    @gl.compileShader vs
-
-    fs = @gl.createShader @gl.FRAGMENT_SHADER
-    @gl.shaderSource fs,$('#frag').text()
-    @gl.compileShader fs
-
-    program = @gl.createProgram()
-    @gl.attachShader program,vs
-    @gl.attachShader program,fs
-    @gl.linkProgram program
-    if @gl.getProgramParameter program,@gl.LINK_STATUS
-      @gl.useProgram program
-
-
-    # locationの取得
-    attrLocation = @gl.getAttribLocation program, 'position'
-    attrStribe = 3
-
-    vertexPosition = [
-      0.0, 1.0, 0.0,
-      1.0, 0.0, 0.0,
-      -1.0, 0.0, 0.0
-    ]
-
-    #vbo生成
-    vbo = @gl.createBuffer()
-    @gl.bindBuffer(@gl.ARRAY_BUFFER, vbo)
-    @gl.bufferData(@gl.ARRAY_BUFFER, new Float32Array(vertexPosition), @gl.STATIC_DRAW)
-    @gl.bindBuffer(@gl.ARRAY_BUFFER, null)
-
-
-    #vbo登録
-    @gl.bindBuffer @gl.ARRAY_BUFFER, vbo
-    @gl.enableVertexAttribArray attrLocation
-    @gl.vertexAttribPointer attrLocation, attrStribe, @gl.FLOAT, false, 0, 0
-
-
+    position = [0.0,0.0,0.0]
+    speed = [10.0,10.0,0.0]
+    @object = new SimpleObject(@gl,position,speed)
+    
     m = new matIV()
-    
-    mMatrix = m.identity(m.create())
-    vMatrix = m.identity(m.create())
-    pMatrix = m.identity(m.create())
-    mvpMatrix = m.identity(m.create())
-    
-    m.lookAt([0.0, 1.0, 3.0], [0, 0, 0], [0, 1, 0], vMatrix)
-    
-    m.perspective(90, w / h, 0.1, 100, pMatrix)
-    
-    m.multiply(pMatrix, vMatrix, mvpMatrix)
-    m.multiply(mvpMatrix, mMatrix, mvpMatrix)
+    mMatrix = m.identity m.create()
+    vMatrix = m.identity m.create()
+    pMatrix = m.identity m.create()
+    @vpMatrix = m.identity m.create()
+    @mvpMatrix = m.identity m.create()
 
-    uniLocation = @gl.getUniformLocation program, 'mvpMatrix'
+    m.lookAt [0.0,0.0,5.0], [0,0,0], [0,1,0], vMatrix
+    m.perspective 90, w/h, 0.1,100,pMatrix
+    m.multiply pMatrix, vMatrix, @vpMatrix
 
-    @gl.uniformMatrix4fv uniLocation, false, mvpMatrix
-    @gl.drawArrays @gl.TRIANGLES, 0, 3
+    @mvpMatrix = @object.draw(@vpMatrix,@mvpMatrix)
+
     @gl.flush()
-
 
     @animate()
     return
@@ -97,10 +63,17 @@ module.exports = class World
         return
     )
 
+    @time += @increment
+
     @render()
 
     return
 
   render:->
+    @gl.clearColor(0.0,0.0,0.0,1.0)
+    @gl.clearDepth(1.0)
+    @gl.clear @gl.COLOR_BUFFER_BIT | @gl.DEPTH_BUFFER_BIT
+
+    @mvpMatrix = @object.update(@mvpMatrix,@time)
 
     return
