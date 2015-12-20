@@ -51,3 +51,10 @@ module.exports =
       @gl.bufferData @gl.ARRAY_BUFFER, new Float32Array(data), @gl.STATIC_DRAW
       @gl.bindBuffer(@gl.ARRAY_BUFFER, null)
       return vbo
+
+    setAttribute:(vbo,attL,attS)->
+      for i in [0..vbo.length-1]
+        @gl.bindBuffer @gl.ARRAY_BUFFER, vbo[i]
+        @gl.enableVertexAttribArray attL[i]
+        @gl.vertexAttribPointer attL[i], attS[i], @gl.FLOAT, false, 0, 0
+      return

@@ -14,59 +14,78 @@ module.exports = class World
     @init()
     return
   init: ->
+
     w = $(window).width()
     h = $(window).height()
-
-    $('#container').append("<canvas id='canvas' width='#{w}' height='#{h}'></canvas>")
-
-
-    canvas = $('#canvas')[0]
+    $canvas = $('<canvas id="myCanvas"></canvas>')
+    $('#container').append($canvas)
+    canvas = $('#myCanvas')[0]
+    canvas.width = w
+    canvas.height = h
     @gl = canvas.getContext('webgl')
     @gl.clearColor(0.0,0.0,0.0,1.0)
     @gl.clearDepth(1.0)
     @gl.clear @gl.COLOR_BUFFER_BIT | @gl.DEPTH_BUFFER_BIT
 
-    joyShader = new JoyShader(@gl)
-    vShader = joyShader.createShader('vert')
-    fShader = joyShader.createShader('frag')
-    program = joyShader.createProgram(vShader,fShader)
+    vs = @gl.createShader @gl.VERTEX_SHADER
+    @gl.shaderSource vs, $('#vert').text()
+    @gl.compileShader vs
+
+    fs = @gl.createShader @gl.FRAGMENT_SHADER
+    @gl.shaderSource fs,$('#frag').text()
+    @gl.compileShader fs
+
+    program = @gl.createProgram()
+    @gl.attachShader program,vs
+    @gl.attachShader program,fs
+    @gl.linkProgram program
+    if @gl.getProgramParameter program,@gl.LINK_STATUS
+      @gl.useProgram program
 
 
-    attLocation = @gl.getAttribLocation(program, 'position')
-    attStride = 3
+    # locationの取得
+    attrLocation = @gl.getAttribLocation program, 'position'
+    attrStribe = 3
+
     vertexPosition = [
-       0.0, 1.0, 0.0
-       1.0, 0.0, 0.0
+      0.0, 1.0, 0.0,
+      1.0, 0.0, 0.0,
       -1.0, 0.0, 0.0
     ]
 
-    vbo = joyShader.createVbo vertexPosition
-
+    #vbo生成
+    vbo = @gl.createBuffer()
     @gl.bindBuffer(@gl.ARRAY_BUFFER, vbo)
+    @gl.bufferData(@gl.ARRAY_BUFFER, new Float32Array(vertexPosition), @gl.STATIC_DRAW)
+    @gl.bindBuffer(@gl.ARRAY_BUFFER, null)
 
-    @gl.enableVertexAttribArray attLocation
 
-    @gl.vertexAttribPointer(attLocation, attStride, @gl.FLOAT, false, 0, 0)
+    #vbo登録
+    @gl.bindBuffer @gl.ARRAY_BUFFER, vbo
+    @gl.enableVertexAttribArray attrLocation
+    @gl.vertexAttribPointer attrLocation, attrStribe, @gl.FLOAT, false, 0, 0
+
 
     m = new matIV()
-    mMatrix = m.identity m.create()
-    vMatrix = m.identity m.create()
-    pMatrix = m.identity m.create()
-    mvpMatrix = m.identity m.create()
-
-    m.lookAt([0.0,1.0,3.0],[0,0,0],[0,1,0],vMatrix)
-    m.perspective 90, canvas.width / canvas.height, 0.1, 100, pMatrix    
-
-    m.multiply pMatrix, vMatrix, mvpMatrix
-    m.multiply mvpMatrix, mMatrix, mvpMatrix
+    
+    mMatrix = m.identity(m.create())
+    vMatrix = m.identity(m.create())
+    pMatrix = m.identity(m.create())
+    mvpMatrix = m.identity(m.create())
+    
+    m.lookAt([0.0, 1.0, 3.0], [0, 0, 0], [0, 1, 0], vMatrix)
+    
+    m.perspective(90, w / h, 0.1, 100, pMatrix)
+    
+    m.multiply(pMatrix, vMatrix, mvpMatrix)
+    m.multiply(mvpMatrix, mMatrix, mvpMatrix)
 
     uniLocation = @gl.getUniformLocation program, 'mvpMatrix'
-    resolution = [new Float32Array(w),new Float32Array(h)]
-    @gl.uniformMatrix4fv uniLocation, false, mvpMatrix, resolution
 
-    @gl.drawArrays(@gl.TRIANGLES, 0, 3)
-
+    @gl.uniformMatrix4fv uniLocation, false, mvpMatrix
+    @gl.drawArrays @gl.TRIANGLES, 0, 3
     @gl.flush()
+
 
     @animate()
     return
